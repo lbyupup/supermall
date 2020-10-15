@@ -3,92 +3,26 @@
     <nav-bar class="home-nav">
       <div slot="center">购物街</div>
     </nav-bar>
-    <home-swiper :banners="banners"></home-swiper>
-    <recommend-view :recommends="recommends" />
-    <feature-view />
-    <tab-control
-      :titles="['流行', '新款', '精选']"
-      class="tab-contron"
-      @tabClick="tabClick"
-    />
-    <goods-list :goods="showGoods"></goods-list>
-    <ul>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-      <li></li>
-    </ul>
+
+    <scroll
+      class="content"
+      ref="scroll"
+      :probe-type="3"
+      :pull-up-load="true"
+      @scroll="contentScroll"
+      @pullingUp="loadMore"
+    >
+      <home-swiper :banners="banners"></home-swiper>
+      <recommend-view :recommends="recommends" />
+      <feature-view />
+      <tab-control
+        :titles="['流行', '新款', '精选']"
+        class="tab-contron"
+        @tabClick="tabClick"
+      />
+      <goods-list :goods="showGoods"></goods-list>
+    </scroll>
+    <back-top @click.native="backClick" v-show="isShowBackTop" />
   </div>
 </template>
 <script>
@@ -99,8 +33,11 @@ import FeatureView from "./childComps/FeatureView";
 import NavBar from "components/common/navbar/NavBar";
 import TabControl from "components/content/tabControl/TabControl";
 import GoodsList from "components/content/goods/GoodsList";
+import Scroll from "components/common/scroll/Scroll";
+import BackTop from "components/content/backTop/BackTop";
 
 import { getHomeMultidata, getHomeGoods } from "network/home";
+
 export default {
   name: "Home",
   components: {
@@ -110,6 +47,8 @@ export default {
     NavBar,
     TabControl,
     GoodsList,
+    Scroll,
+    BackTop,
   },
 
   data() {
@@ -122,13 +61,16 @@ export default {
         sell: { page: 0, list: [] },
       },
       currentType: "pop",
+      isShowBackTop: true,
     };
   },
+
   computed: {
     showGoods() {
       return this.goods[this.currentType].list;
     },
   },
+
   created() {
     // 1. 请求多个数据
     this.getHomeMultidata();
@@ -138,6 +80,7 @@ export default {
     this.getHomeGoods("new");
     this.getHomeGoods("sell");
   },
+
   methods: {
     // 事件监听相关方法
     tabClick(index) {
@@ -154,11 +97,21 @@ export default {
           break;
       }
     },
+    backClick() {
+      this.$refs.scroll.scrollTo(0, 0);
+    },
+    contentScroll(position) {
+      this.isShowBackTop = -position.y > 1000;
+    },
+    loadMore() {
+      this.getHomeGoods(this.currentType);
+    },
+
     // 网络请求相关方法
     getHomeMultidata() {
       // 1. 请求多个数据
       getHomeMultidata().then((res) => {
-        // console.log(res);
+        console.log(res);
         this.banners = res.data.banner.list;
         this.recommends = res.data.recommend.list;
       });
@@ -170,6 +123,10 @@ export default {
         // 把获取到的商品列表数据保存到 goods
         this.goods[type].list.push(...res.data.list);
         this.goods[type].page += 1;
+        // 这个保证可以重新上拉加载
+        this.$refs.scroll.finishPullUp();
+        // 重新计算scroll高度
+        this.$refs.scroll.scroll.refresh();
       });
     },
   },
@@ -177,7 +134,9 @@ export default {
 </script>
 <style scoped>
 #home {
-  padding-top: 44px;
+  /* padding-top: 44px; */
+  position: relative;
+  height: 100vh;
 }
 .home-nav {
   background-color: var(--color-tint);
@@ -192,5 +151,17 @@ export default {
   position: sticky;
   top: 44px;
   z-index: 9;
+}
+/* .content {
+  margin-top: 44px;
+  height: calc(100% - 93px);
+  overflow: hidden;
+} */
+.content {
+  position: absolute;
+  top: 44px;
+  bottom: 49px;
+  right: 0;
+  left: 0;
 }
 </style>
