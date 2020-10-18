@@ -44,6 +44,7 @@ import BackTop from "components/content/backTop/BackTop";
 
 import { getHomeMultidata, getHomeGoods } from "network/home";
 import { debounce } from "common/utils";
+import { itemListenerMixin } from "common/mixin";
 
 export default {
   name: "Home",
@@ -72,8 +73,11 @@ export default {
       tabOffsetTop: 0,
       isTabFixed: false,
       saveY: 0,
+      // itemImgListener: null, // 被混入了 在mixin里面
     };
   },
+
+  mixins: [itemListenerMixin],
 
   computed: {
     showGoods() {
@@ -87,6 +91,7 @@ export default {
   },
 
   deactivated() {
+    // 1. 保存Y值
     this.saveY = this.$refs.scroll.getScrollY();
   },
 
@@ -101,12 +106,12 @@ export default {
   },
 
   mounted() {
-    const refresh = debounce(this.$refs.scroll.refresh, 500);
-    // 3. 监听图片加载完成后
-    this.$bus.$on("itemIamgeLoad", () => {
-      // 重新计算scroll高度
-      refresh();
-    });
+    // const refresh = debounce(this.$refs.scroll.refresh, 500);
+    // // 3. 监听图片加载完成后
+    // this.$bus.$on("homeItemIamgeLoad", () => {
+    //   // 重新计算scroll高度
+    //   refresh();
+    // });
   },
 
   methods: {

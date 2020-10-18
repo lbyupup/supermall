@@ -41,6 +41,7 @@
 <script>
 export default {
   name: "DetailShopInfo",
+
   props: {
     shop: {
       type: Object,
@@ -49,6 +50,7 @@ export default {
       },
     },
   },
+
   filters: {
     sellCountFilter: function (value) {
       if (value < 10000) return value;
@@ -57,6 +59,7 @@ export default {
   },
 };
 </script>
+
 <style scoped>
 .shop-info {
   padding: 25px 8px;
