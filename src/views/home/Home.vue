@@ -28,7 +28,7 @@
       />
       <goods-list :goods="showGoods"></goods-list>
     </scroll>
-    <back-top @click.native="backClick" v-show="isShowBackTop" />
+    <back-top @click.native="backTopClick" v-show="isShowBackTop" />
   </div>
 </template>
 <script>
@@ -40,11 +40,11 @@ import NavBar from "components/common/navbar/NavBar";
 import TabControl from "components/content/tabControl/TabControl";
 import GoodsList from "components/content/goods/GoodsList";
 import Scroll from "components/common/scroll/Scroll";
-import BackTop from "components/content/backTop/BackTop";
+// import BackTop from "components/content/backTop/BackTop"; 混入了
 
 import { getHomeMultidata, getHomeGoods } from "network/home";
 import { debounce } from "common/utils";
-import { itemListenerMixin } from "common/mixin";
+import { itemListenerMixin, backTopMixin } from "common/mixin";
 
 export default {
   name: "Home",
@@ -56,7 +56,7 @@ export default {
     TabControl,
     GoodsList,
     Scroll,
-    BackTop,
+    // BackTop, 混入了
   },
 
   data() {
@@ -77,7 +77,7 @@ export default {
     };
   },
 
-  mixins: [itemListenerMixin],
+  mixins: [itemListenerMixin, backTopMixin],
 
   computed: {
     showGoods() {
@@ -129,12 +129,14 @@ export default {
           this.currentType = "sell";
           break;
       }
+      // 让两个tabControl 的currentIndex保持一致
       this.$refs.tabControl1.currentIndex = index;
       this.$refs.tabControl2.currentIndex = index;
     },
-    backClick() {
-      this.$refs.scroll.scrollTo(0, 0);
-    },
+    // 混入了
+    // backClick() {
+    //   this.$refs.scroll.scrollTo(0, 0);
+    // },
     contentScroll(position) {
       // 1. 判断backtop是否显示
       this.isShowBackTop = -position.y > 1000;

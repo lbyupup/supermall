@@ -1,15 +1,24 @@
 <template>
   <div id="detail">
-    <detail-nav-bar class="detail-nav" />
-    <scroll class="content" ref="scroll">
+    <detail-nav-bar class="detail-nav" @titleClick="titleClick" ref="nav" />
+    <scroll
+      class="content"
+      ref="scroll"
+      @scroll="contentScroll"
+      :probe-type="3"
+    >
+      <!-- 属性: topImages 传入值: top-images 不区分大小写不用驼峰
+       -->
       <detail-swiper :top-images="topImages" />
       <detail-base-info :goods="goods" />
       <detail-shop-info :shop="shop" />
       <detail-goods-info :detail-info="detailInfo" @imageLoad="imageLoad" />
-      <detail-param-info :param-info="paramInfo" />
-      <detail-comment-info :comment-info="commentInfo" />
-      <goods-list :goods="recommends" />
+      <detail-param-info ref="params" :param-info="paramInfo" />
+      <detail-comment-info ref="comment" :comment-info="commentInfo" />
+      <goods-list ref="recommend" :goods="recommends" />
     </scroll>
+    <detail-bottom-bar />
+    <back-top v-show="isShowBackTop" @click.native="backTopClick" />
   </div>
 </template>
 <script>
@@ -21,11 +30,13 @@ import DetailGoodsInfo from "./childComps/DetailGoodsInfo";
 import DetailParamInfo from "./childComps/DetailParamInfo";
 import DetailCommentInfo from "./childComps/DetailCommentInfo";
 import GoodsList from "components/content/goods/GoodsList";
+import DetailBottomBar from "./childComps/DetailBottomBar";
+// import BackTop from "components/content/backTop/BackTop";
 
 import Scroll from "components/common/scroll/Scroll";
 
 import { debounce } from "common/utils";
-import { itemListenerMixin } from "common/mixin";
+import { itemListenerMixin, backTopMixin } from "common/mixin";
 import {
   getDetail,
   Goods,
@@ -46,22 +57,26 @@ export default {
     DetailParamInfo,
     DetailCommentInfo,
     GoodsList,
+    DetailBottomBar,
     Scroll,
+    // BackTop, 混入了
   },
 
-  mixins: [itemListenerMixin],
+  mixins: [itemListenerMixin, backTopMixin],
 
   data() {
     return {
       iid: null,
-      topImages: [],
-      goods: {},
-      shop: {},
+      topImages: [], // 轮播图
+      goods: {}, // 商品信息
+      shop: {}, // 店铺信息
       detailInfo: {},
       paramInfo: {},
-      commentInfo: {},
-      recommends: [],
+      commentInfo: {}, // 评论
+      recommends: [], // 推荐
       // itemImgListener: null, // 被混入了 在mixin里面
+      themeTopYs: [], // 商品, 参数, 评论, 推荐对应的高度
+      // isShowBackTop: false, // 回到顶部 混入了
     };
   },
 
@@ -99,6 +114,15 @@ export default {
       if (data.rate.cRate !== 0) {
         this.commentInfo = data.rate.list[0];
       }
+
+      // // 在这里获取到 offsetTop 图片可能没加载完 高度可能不对
+      // this.$nextTick(() => {
+      //   // tabcontrol 滚去的高度数据保存在数组
+      //   this.themeTopYs.push(0);
+      //   this.themeTopYs.push(this.$refs.params.$el.offsetTop);
+      //   this.themeTopYs.push(this.$refs.comment.$el.offsetTop);
+      //   this.themeTopYs.push(this.$refs.recommend.$el.offsetTop);
+      // });
     });
 
     // 请求商品详情页面的 推荐数据
@@ -118,12 +142,57 @@ export default {
     // this.$bus.$on("detaiulItemIamgeLoad", this.itemImgListener);
   },
 
-  // deactivated() {},
-
   methods: {
     imageLoad() {
       this.$refs.scroll.refresh();
+
+      // tabcontrol 滚去的高度数据保存在数组
+      this.themeTopYs = [];
+      this.themeTopYs.push(0);
+      this.themeTopYs.push(this.$refs.params.$el.offsetTop);
+      this.themeTopYs.push(this.$refs.comment.$el.offsetTop);
+      this.themeTopYs.push(this.$refs.recommend.$el.offsetTop);
+      this.themeTopYs.push(Number.MAX_VALUE); // 为数组添加一个最大的数
     },
+    titleClick(index) {
+      // 点击tabcontrol页面滑到相应的地方
+      this.$refs.scroll.scrollTo(0, -this.themeTopYs[index], 300);
+    },
+
+    // 页面滚动事件
+    contentScroll(position) {
+      // 回到顶部 isShowBackTop 值的返回
+      this.isShowBackTop = -position.y > 600;
+
+      const positionY = -position.y;
+
+      // 对比themeTopYs 中的y值
+      let length = this.themeTopYs.length;
+      for (let i = 0; i < length - 1; i++) {
+        // if (
+        //   this.currentIndex !== i && // this.currentIndex !== i 防止赋值的过程过于频繁
+        //   ((i < length - 1 &&
+        //     positionY >= this.themeTopYs[i] &&
+        //     positionY < this.themeTopYs[i + 1]) ||
+        //     (i === length - 1 && positionY >= this.themeTopYs[i])) // 判断themeTopYs区间 若是themeTopYs数组的最后一个i 则另外判断
+        // ) {
+        //   this.$refs.nav.currentIndex = i;
+        // }
+        if (
+          // 优化写法
+          this.currentIndex !== i &&
+          positionY >= this.themeTopYs[i] &&
+          positionY < this.themeTopYs[i + 1]
+        ) {
+          this.$refs.nav.currentIndex = i;
+        }
+      }
+    },
+    // 混入了
+    // backTop() {
+    //   this.isShowBackTop = false;
+    //   this.$refs.scroll.scrollTo(0, 0, 300);
+    // },
   },
 };
 </script>
