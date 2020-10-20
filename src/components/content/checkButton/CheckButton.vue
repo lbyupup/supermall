@@ -18,9 +18,9 @@ export default {
 .check-button img {
   margin-right: 10px;
   border-radius: 50%;
-  border: 2px solid hotpink;
+  border: 2px solid var(--color-tint);
 }
 .check {
-  background-color: hotpink;
+  background-color: var(--color-tint);
 }
 </style>
