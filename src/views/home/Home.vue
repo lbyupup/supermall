@@ -144,9 +144,11 @@ export default {
       // 2. 决定tabcontrol是否吸顶
       this.isTabFixed = -position.y > this.tabOffsetTop;
     },
+
     loadMore() {
       this.getHomeGoods(this.currentType);
     },
+
     swiperImageLoad() {
       // 获取tabcontrol的offset
       // 所有的组件都有一个属性 $el 用于获取组件中的元素
@@ -161,6 +163,7 @@ export default {
         this.recommends = res.data.recommend.list;
       });
     },
+
     getHomeGoods(type) {
       const page = this.goods[type].page + 1;
       getHomeGoods(type, page).then((res) => {

@@ -17,7 +17,7 @@
       <detail-comment-info ref="comment" :comment-info="commentInfo" />
       <goods-list ref="recommend" :goods="recommends" />
     </scroll>
-    <detail-bottom-bar />
+    <detail-bottom-bar @addCart="addToCart" />
     <back-top v-show="isShowBackTop" @click.native="backTopClick" />
   </div>
 </template>
@@ -193,6 +193,19 @@ export default {
     //   this.isShowBackTop = false;
     //   this.$refs.scroll.scrollTo(0, 0, 300);
     // },
+    addToCart() {
+      // 1. 获取购物车需要展示的信息
+      const product = {};
+      product.image = this.topImages[0];
+      product.title = this.goods.title;
+      product.desc = this.goods.desc;
+      product.price = this.goods.realPrice;
+      product.iid = this.iid;
+
+      // 2. 商品添加到购物车
+      // this.$store.commit("addCart", product);
+      this.$store.dispatch("addCart", product);
+    },
   },
 };
 </script>
