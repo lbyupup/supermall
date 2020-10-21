@@ -19,6 +19,7 @@
     </scroll>
     <detail-bottom-bar @addCart="addToCart" />
     <back-top v-show="isShowBackTop" @click.native="backTopClick" />
+    <!-- <toast :message="message" :show="show" /> -->
   </div>
 </template>
 <script>
@@ -35,6 +36,8 @@ import DetailBottomBar from "./childComps/DetailBottomBar";
 
 import Scroll from "components/common/scroll/Scroll";
 
+import { mapActions } from "vuex";
+
 import { debounce } from "common/utils";
 import { itemListenerMixin, backTopMixin } from "common/mixin";
 import {
@@ -44,6 +47,8 @@ import {
   GoodsParam,
   getRecommend,
 } from "network/detail";
+
+// import Toast from "components/common/toast/Toast";
 
 export default {
   name: "Detail",
@@ -59,6 +64,7 @@ export default {
     GoodsList,
     DetailBottomBar,
     Scroll,
+    // Toast,
     // BackTop, 混入了
   },
 
@@ -77,6 +83,8 @@ export default {
       // itemImgListener: null, // 被混入了 在mixin里面
       themeTopYs: [], // 商品, 参数, 评论, 推荐对应的高度
       // isShowBackTop: false, // 回到顶部 混入了
+      // message: "", // 传入Toast的变量
+      // show: false,
     };
   },
 
@@ -143,6 +151,8 @@ export default {
   },
 
   methods: {
+    ...mapActions(["addCart"]),
+
     imageLoad() {
       this.$refs.scroll.refresh();
 
@@ -154,6 +164,7 @@ export default {
       this.themeTopYs.push(this.$refs.recommend.$el.offsetTop);
       this.themeTopYs.push(Number.MAX_VALUE); // 为数组添加一个最大的数
     },
+
     titleClick(index) {
       // 点击tabcontrol页面滑到相应的地方
       this.$refs.scroll.scrollTo(0, -this.themeTopYs[index], 300);
@@ -193,6 +204,7 @@ export default {
     //   this.isShowBackTop = false;
     //   this.$refs.scroll.scrollTo(0, 0, 300);
     // },
+
     addToCart() {
       // 1. 获取购物车需要展示的信息
       const product = {};
@@ -204,7 +216,20 @@ export default {
 
       // 2. 商品添加到购物车
       // this.$store.commit("addCart", product);
-      this.$store.dispatch("addCart", product);
+      // this.$store.dispatch("addCart", product).then((res) => {
+      //   console.log(res);
+      // });
+      // 用了mapActions
+      this.addCart(product).then((res) => {
+        // this.show = true;
+        // this.message = res;
+        // setTimeout(() => {
+        //   this.show = false;
+        //   this.message = "";
+        // }, 1000);
+        this.$toast.show(res, 1000);
+      });
+      // 在向vuex操作完数据之后再显示(返回一个promise) 商品是否添加到购物车的toast
     },
   },
 };

@@ -7,7 +7,7 @@
         @click.native="checkClick"
       />全选
       <div class="totalPrice">合计:￥{{ totalPrice }}</div>
-      <div class="calculate">去付款({{ checkLength }})</div>
+      <div class="calculate" @click="calcClick">去付款({{ checkLength }})</div>
     </div>
   </div>
 </template>
@@ -67,11 +67,19 @@ export default {
         }
       });
     },
+    calcClick() {
+      if (this.checkedGoods.length === 0) {
+        this.$toast.show("请选择商品", 1000);
+      }
+    },
   },
 };
 </script>
 <style scoped>
 .bottom-bar {
+  width: 100%;
+  position: fixed;
+  bottom: 49px;
   height: 40px;
   background-color: #f0f0f0;
 }
@@ -92,7 +100,7 @@ export default {
 .calculate {
   background-color: red;
   color: #fff;
-  width: 100px;
+  width: calc(100% - 220px);
   text-align: center;
 }
 </style>
